@@ -2,16 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Globe2, Bell, Search, Menu, LogOut, User, Settings } from 'lucide-react';
+import { Globe2, Bell, Search, Menu, LogOut, User, Settings, Users } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { useUIStore } from '@/store/uiStore';
+import { useFriendStore } from '@/store/friendStore';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const { toggleSidebar } = useUIStore();
+  const pendingCount = useFriendStore((s) => s.pendingCount);
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const pathname = usePathname();
@@ -22,6 +24,7 @@ export function Navbar() {
     { href: '/search', label: '搜尋' },
     { href: '/explore', label: '探索' },
     { href: '/budget', label: '預算' },
+    { href: '/friends', label: '好友' },
   ];
 
   const handleLogout = async () => {
@@ -49,13 +52,18 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 pathname.startsWith(link.href)
                   ? 'bg-sky-50 text-sky-700'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               {link.label}
+              {link.href === '/friends' && pendingCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
@@ -65,7 +73,17 @@ export function Navbar() {
           <Button variant="ghost" size="icon" className="text-slate-500">
             <Search className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-slate-500">
+          <Link href="/friends" className="relative md:hidden">
+            <Button variant="ghost" size="icon" className="text-slate-500">
+              <Users className="w-5 h-5" />
+            </Button>
+            {pendingCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">
+                {pendingCount}
+              </span>
+            )}
+          </Link>
+          <Button variant="ghost" size="icon" className="text-slate-500 hidden md:flex">
             <Bell className="w-5 h-5" />
           </Button>
 

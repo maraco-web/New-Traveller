@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'motion/react';
-import { Plus, Map, Plane, Compass, PiggyBank, Calendar, ArrowRight, TrendingUp } from 'lucide-react';
+import { Plus, Map, Plane, Compass, PiggyBank, Calendar, ArrowRight, TrendingUp, Users, Bell, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { MOCK_TRIPS } from '@/data/mockTrips';
 import { useAuth } from '@/hooks/useAuth';
+import { useFriends } from '@/hooks/useFriends';
 import { formatDate, getTripDuration, formatCurrency } from '@/lib/utils';
 
 const QUICK_ACTIONS = [
@@ -59,8 +60,18 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins} 分鐘前`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} 小時前`;
+  return `${Math.floor(hrs / 24)} 天前`;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { pendingRequests, activities, pendingCount } = useFriends();
   const upcomingTrips = MOCK_TRIPS.filter(
     (t) => t.status === 'upcoming' || t.status === 'planning'
   );
@@ -85,6 +96,32 @@ export default function DashboardPage() {
         </h1>
         <p className="text-slate-500 mt-1">準備好你的下一段旅程了嗎？</p>
       </motion.div>
+
+      {/* Friend request notification banner */}
+      {pendingCount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <Link href="/friends?tab=requests">
+            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-100 rounded-2xl hover:shadow-sm transition-shadow cursor-pointer">
+              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+                <Bell className="w-5 h-5 text-violet-500" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-violet-900">
+                  你有 {pendingCount} 則好友請求待確認
+                </p>
+                <p className="text-xs text-violet-500 mt-0.5">
+                  {pendingRequests[0]?.fromDisplayName} 等人想和你成為旅遊好友
+                </p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-violet-400 shrink-0" />
+            </div>
+          </Link>
+        </motion.div>
+      )}
 
       {/* Quick Actions */}
       <motion.div
@@ -235,6 +272,56 @@ export default function DashboardPage() {
                 新增行程
               </Button>
             </Link>
+          </Card>
+
+          {/* Friends activity feed */}
+          <Card className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                <Users className="w-4 h-4 text-violet-500" />
+                好友動態
+              </h3>
+              <Link href="/friends" className="text-xs text-sky-600 hover:underline flex items-center gap-0.5">
+                查看全部 <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {activities.slice(0, 3).map((act) => (
+                <div key={act.id} className="flex items-start gap-2.5">
+                  {act.userPhoto ? (
+                    <Image
+                      src={act.userPhoto}
+                      alt={act.userName}
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      {act.userName[0]}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-slate-700 line-clamp-2">
+                      <span className="font-semibold">{act.userName}</span>{' '}
+                      {act.title}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                      <span>{timeAgo(act.createdAt)}</span>
+                      <span className="flex items-center gap-0.5">
+                        <Heart className="w-2.5 h-2.5" />
+                        {act.likedBy.length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {activities.length === 0 && (
+                <p className="text-xs text-slate-400 text-center py-4">
+                  加好友後即可看到動態
+                </p>
+              )}
+            </div>
           </Card>
 
           {/* Recent destinations */}
