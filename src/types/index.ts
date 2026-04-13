@@ -146,6 +146,72 @@ export interface Place {
   coordinates: { lat: number; lng: number };
 }
 
+// ─── Friends & Social ───────────────────────────────────────────────────────
+
+export type FriendRequestStatus = 'pending' | 'accepted' | 'rejected';
+export type FriendActivityType =
+  | 'new_trip'
+  | 'completed_trip'
+  | 'saved_place'
+  | 'joined_trip'
+  | 'added_expense'
+  | 'new_friend';
+
+export interface FriendProfile {
+  uid: string;
+  displayName: string;
+  photoURL?: string;
+  email: string;
+  tripCount: number;
+  countriesCount: number;
+  bio?: string;
+  isOnline?: boolean;
+  lastSeen?: string;
+  friendSince?: string;
+}
+
+export interface FriendRequest {
+  id: string;
+  fromUid: string;
+  fromDisplayName: string;
+  fromPhotoURL?: string;
+  fromEmail: string;
+  toUid: string;
+  status: FriendRequestStatus;
+  createdAt: string;
+}
+
+export interface FriendActivity {
+  id: string;
+  userId: string;
+  userName: string;
+  userPhoto?: string;
+  type: FriendActivityType;
+  title: string;
+  description: string;
+  image?: string;
+  destination?: string;
+  tripId?: string;
+  likedBy: string[];
+  commentCount: number;
+  createdAt: string;
+}
+
+export interface SharedTrip {
+  tripId: string;
+  title: string;
+  destination: string;
+  coverImage: string;
+  startDate: string;
+  endDate: string;
+  ownerUid: string;
+  ownerName: string;
+  ownerPhoto?: string;
+  memberCount: number;
+}
+
+// ─── Budget ──────────────────────────────────────────────────────────────────
+
 export interface BudgetSummary {
   totalBudget: number;
   totalSpent: number;
